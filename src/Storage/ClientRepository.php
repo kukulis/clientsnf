@@ -6,7 +6,7 @@ use Lt\Regitra\Data\Client;
 
 interface ClientRepository
 {
-    public function add(Client $client): void;
+    public function add(Client $client): int;
     public function clear(): void;
 
     /**
