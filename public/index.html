@@ -1,5 +1,85 @@
-<html>
-<body>
-TODO clients
+<html lang="lit-LT">
+<head>
+    <title>Klientai</title>
+
+    <script type="application/javascript">
+        function reloadClients() {
+            console.log('reloadClients called');
+            fetch('get-all.php')
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Data not found');
+                        } else if (response.status === 500) {
+                            throw new Error('Server error');
+                        } else {
+                            throw new Error('Network response was not ok');
+                        }
+                    }
+                    return response.json();
+                })
+                .then(data=>{
+                    const tbl = document.getElementById('clients-lines');
+                    tbl.innerHTML = '';
+                    data.forEach( client => {
+                        console.log('name='+client.name);
+
+                        const tr = tbl.insertRow();
+
+                        tr.insertCell().innerHTML = client.name;
+                        tr.insertCell().innerHTML = client.family_name;
+                        tr.insertCell().innerHTML = client.birth_date;
+                    })
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function displayNewClientForm() {
+            var newClientForm = document.getElementById('new-product-form');
+            newClientForm.style.display='block';
+        }
+
+        function newClient() {
+            // TODO
+
+            var newClientForm = document.getElementById('new-product-form');
+            newClientForm.style.display='none';
+        }
+    </script>
+</head>
+
+<body onload="reloadClients()">
+<h1>Klientai</h1>
+
+
+
+<button onclick="displayNewClientForm()">Naujas klientas</button>
+<div id="new-product-form" style="display:none">
+    <form>
+        TODO
+        <button onclick="newClient()">Kurti</button>
+    </form>
+</div>
+
+
+<div id="clientsList">
+    <table id="clients-table">
+        <thead>
+        <tr>
+            <th>Vardas</th>
+            <th>Pavardė</th>
+            <th>Gimimo data</th>
+        </tr>
+        </thead>
+        <tbody id="clients-lines">
+
+        </tbody>
+    </table>
+
+    <button onclick="reloadClients()" >Reload</button>
+
+</div>
 </body>
 </html>
