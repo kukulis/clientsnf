@@ -3,3 +3,4 @@ composer.phar
 /.idea
 /.vscode
 .composer
+.phpunit.result.cache
