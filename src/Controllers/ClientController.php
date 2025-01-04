@@ -18,10 +18,18 @@ class ClientController
     public function add(array $request, string $body): void
     {
         $data = json_decode($body, true);
+        if ( $data == null ) {
+            $data = $request;
+        }
+
         $client = self::arrayToClient($data);
 
+
         $count = $this->clientRepository->add($client);
-        echo json_encode($count);
+
+        $insertedData = self::clientToArray($client);
+
+        echo json_encode($insertedData);
     }
 
     public function clear(array $request): void

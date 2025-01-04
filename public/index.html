@@ -3,6 +3,16 @@
     <title>Klientai</title>
 
     <script type="application/javascript">
+        function addClientToTable(client) {
+            const tbl = document.getElementById('clients-lines');
+
+            const tr = tbl.insertRow();
+
+            tr.insertCell().innerHTML = client.name;
+            tr.insertCell().innerHTML = client.family_name;
+            tr.insertCell().innerHTML = client.birth_date;
+        }
+
         function reloadClients() {
             console.log('reloadClients called');
             fetch('get-all.php')
@@ -18,17 +28,11 @@
                     }
                     return response.json();
                 })
-                .then(data=>{
+                .then(data => {
                     const tbl = document.getElementById('clients-lines');
                     tbl.innerHTML = '';
-                    data.forEach( client => {
-                        console.log('name='+client.name);
-
-                        const tr = tbl.insertRow();
-
-                        tr.insertCell().innerHTML = client.name;
-                        tr.insertCell().innerHTML = client.family_name;
-                        tr.insertCell().innerHTML = client.birth_date;
+                    data.forEach(client => {
+                        addClientToTable(client);
                     })
                 })
                 .catch(error => {
@@ -37,15 +41,70 @@
         }
 
         function displayNewClientForm() {
-            var newClientForm = document.getElementById('new-product-form');
-            newClientForm.style.display='block';
+            var newClientForm = document.getElementById('new-client-block');
+            newClientForm.style.display = 'block';
+        }
+        function hideNewClientForm() {
+            var newClientForm = document.getElementById('new-client-block');
+            newClientForm.style.display = 'none';
         }
 
         function newClient() {
-            // TODO
 
-            var newClientForm = document.getElementById('new-product-form');
-            newClientForm.style.display='none';
+            let newClientForm = document.getElementById('new-client-form');
+            let formData = new FormData(newClientForm);
+            let object = {};
+            formData.forEach((value, key) => object[key] = value);
+            let json = JSON.stringify(object);
+
+            fetch('/add.php', {
+                method: 'POST',
+                body: json
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Data not found');
+                        } else if (response.status === 500) {
+                            throw new Error('Server error');
+                        } else {
+                            throw new Error('Network response was not ok');
+                        }
+                    }
+                    return response.json();
+                }).then(data => {
+                addClientToTable(data);
+            })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+
+            hideNewClientForm();
+
+            // disable default action
+            return false;
+        }
+
+        function clearClients() {
+            fetch('/clear.php', {
+                method: 'POST',
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('Data not found');
+                    } else if (response.status === 500) {
+                        throw new Error('Server error');
+                    } else {
+                        throw new Error('Network response was not ok');
+                    }
+                }
+
+                reloadClients();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         }
     </script>
 </head>
@@ -53,13 +112,19 @@
 <body onload="reloadClients()">
 <h1>Klientai</h1>
 
-
-
 <button onclick="displayNewClientForm()">Naujas klientas</button>
-<div id="new-product-form" style="display:none">
-    <form>
-        TODO
-        <button onclick="newClient()">Kurti</button>
+<div id="new-client-block" style="display:none">
+    <form id="new-client-form">
+        <dl>
+            <dt><label for="name">Vardas</label></dt>
+            <dd><input type="text" id="name" name="name"></dd>
+            <dt><label for="family_name">Pavardė</label></dt>
+            <dd><input type="text" id="family_name" name="family_name"></dd>
+            <dt><label for="family_name">Gimimo Data</label></dt>
+            <dd><input type="text" id="birth_date" name="birth_date"></dd>
+
+            <button onclick="return newClient()">Kurti</button>
+        </dl>
     </form>
 </div>
 
@@ -78,8 +143,8 @@
         </tbody>
     </table>
 
-    <button onclick="reloadClients()" >Reload</button>
-
+    <!--    <button onclick="reloadClients()" >Reload</button>-->
+    <button onclick="clearClients()">Valyti</button>
 </div>
 </body>
 </html>
