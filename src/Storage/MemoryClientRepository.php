@@ -13,7 +13,8 @@ class MemoryClientRepository implements ClientRepository
 
     public function add(Client $client): int
     {
-        $this->clients[] = $client;
+        array_unshift($this->clients, $client);
+//        $this->clients[] = $client;
 
         return count($this->clients);
     }

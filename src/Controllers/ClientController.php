@@ -3,7 +3,9 @@
 namespace Lt\Regitra\Controllers;
 
 use DateTime;
+use Exception;
 use Lt\Regitra\Data\Client;
+use Lt\Regitra\Exceptions\ValidationException;
 use Lt\Regitra\Storage\ClientRepository;
 
 class ClientController
@@ -49,10 +51,28 @@ class ClientController
 
     public static function arrayToClient(array $data): Client
     {
+        if( $data['name'] == null ) {
+            throw new ValidationException('Vardas neturi būti tuščias');
+        }
+
+        if( $data['family_name'] == null ) {
+            throw new ValidationException('Pavardė neturi būti tuščia');
+        }
+
+        if ($data['birth_date'] == null ) {
+            throw new ValidationException('Nenurodyta gimimo data');
+        }
+
+        try {
+            $date = new DateTime($data['birth_date']);
+        } catch (Exception $e) {
+            throw new ValidationException('Neteisinga gimimo data '.$data['birth_date']);
+        }
+
         return (new Client())
             ->setName($data['name'])
             ->setFamilyName($data['family_name'])
-            ->setBirthDate(new DateTime($data['birth_date']));
+            ->setBirthDate($date);
     }
 
     public static function clientToArray(Client $client): array

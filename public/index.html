@@ -1,15 +1,25 @@
 <html lang="lit-LT">
 <head>
     <title>Klientai</title>
+    <style>
+        th,td {
+            border-bottom: 1px solid gray;
+            padding: 12px;
+            text-align: center;
+        }
+    </style>
 
     <script type="application/javascript">
-        function addClientToTable(client) {
-            const tbl = document.getElementById('clients-lines');
+        function addClientToTable(client, atBegining = false) {
+            let tbl = document.getElementById('clients-lines');
 
-            const tr = tbl.insertRow();
+            let tr = atBegining ? tbl.insertRow(0) : tbl.insertRow();
+
+            let inicials = client.name.charAt(0)+client.family_name.charAt(0);
 
             tr.insertCell().innerHTML = client.name;
             tr.insertCell().innerHTML = client.family_name;
+            tr.insertCell().innerHTML = inicials;
             tr.insertCell().innerHTML = client.birth_date;
         }
 
@@ -44,6 +54,7 @@
             var newClientForm = document.getElementById('new-client-block');
             newClientForm.style.display = 'block';
         }
+
         function hideNewClientForm() {
             var newClientForm = document.getElementById('new-client-block');
             newClientForm.style.display = 'none';
@@ -61,6 +72,39 @@
                 method: 'POST',
                 body: json
             })
+                .then(async response => {
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Data not found');
+                        } else if (response.status === 500) {
+                            throw new Error('Server error');
+                        }
+                    }
+                    let responseData = await response.json();
+
+                    if (response.status === 400) {
+                        throw new Error('Validation error: ' + responseData.error);
+                    }
+
+                    return responseData;
+                }).then(data => {
+                addClientToTable(data, true);
+                hideNewClientForm();
+            })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Klaida:' + error);
+                });
+
+
+            // disable default action
+            return false;
+        }
+
+        function clearClients() {
+            fetch('/clear.php', {
+                method: 'POST',
+            })
                 .then(response => {
                     if (!response.ok) {
                         if (response.status === 404) {
@@ -71,40 +115,12 @@
                             throw new Error('Network response was not ok');
                         }
                     }
-                    return response.json();
-                }).then(data => {
-                addClientToTable(data);
-            })
+
+                    reloadClients();
+                })
                 .catch(error => {
                     console.error('Error:', error);
                 });
-
-            hideNewClientForm();
-
-            // disable default action
-            return false;
-        }
-
-        function clearClients() {
-            fetch('/clear.php', {
-                method: 'POST',
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error('Data not found');
-                    } else if (response.status === 500) {
-                        throw new Error('Server error');
-                    } else {
-                        throw new Error('Network response was not ok');
-                    }
-                }
-
-                reloadClients();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
         }
     </script>
 </head>
@@ -120,11 +136,10 @@
             <dd><input type="text" id="name" name="name"></dd>
             <dt><label for="family_name">Pavardė</label></dt>
             <dd><input type="text" id="family_name" name="family_name"></dd>
-            <dt><label for="family_name">Gimimo Data</label></dt>
+            <dt><label for="birth_date">Gimimo Data (pvz. 1977-06-30)</label></dt>
             <dd><input type="text" id="birth_date" name="birth_date"></dd>
-
-            <button onclick="return newClient()">Kurti</button>
         </dl>
+        <button onclick="return newClient()">Kurti</button>
     </form>
 </div>
 
@@ -135,6 +150,7 @@
         <tr>
             <th>Vardas</th>
             <th>Pavardė</th>
+            <th>Inicialai</th>
             <th>Gimimo data</th>
         </tr>
         </thead>
