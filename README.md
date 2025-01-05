@@ -4,6 +4,8 @@
 
     git clone git@github.com:kukulis/clientsnf.git
 
+    cd clientsnf
+
     composer install 
 
 arba atsisiuntus iš getcomposer.org composer.phar
